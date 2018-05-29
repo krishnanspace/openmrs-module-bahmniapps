@@ -18,6 +18,7 @@ angular.module('bahmni.appointments')
             $scope.enableEditService = appService.getAppDescriptor().getConfigValue('isServiceOnAppointmentEditable');
             $scope.showStartTimes = [];
             $scope.showEndTimes = [];
+            $scope.phNumber = "7588323843";
             var patientSearchURL = appService.getAppDescriptor().getConfigValue('patientSearchUrl');
             var loginLocationUuid = sessionService.getLoginLocationUuid();
             $scope.minCharLengthToTriggerPatientSearch = appService.getAppDescriptor().getConfigValue('minCharLengthToTriggerPatientSearch') || 3;
@@ -64,7 +65,7 @@ angular.module('bahmni.appointments')
                     };
                     formattedUrl = appService.getAppDescriptor().formatUrl(patientSearchURL, params);
                 }
-                return (spinner.forPromise(formattedUrl ? $http.get(Bahmni.Common.Constants.RESTWS_V1 + formattedUrl) : patientService.search($scope.appointment.patient.label)).then(function (response) {
+                return (spinner.forPromise(formattedUrl ?  $http.get(Bahmni.Common.Constants.RESTWS_V1 + formattedUrl) : patientService.search($scope.appointment.patient.label)).then(function (response) {
                     return response.data.pageOfResults;
                 }));
             };
@@ -85,7 +86,13 @@ angular.module('bahmni.appointments')
                 $scope.appointment.patient = data;
                 return spinner.forPromise(appointmentsService.search({patientUuid: data.uuid}).then(function (oldAppointments) {
                     $scope.patientAppointments = oldAppointments.data;
+                    getPhNumber(data.identifier);
                 }));
+
+            };
+
+            var getPhNumber = function (identifier) {
+                alert(identifier);
             };
 
             var clearSlotsInfo = function () {

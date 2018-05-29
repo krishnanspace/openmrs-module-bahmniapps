@@ -13,7 +13,6 @@
             <section id="addNewAppointment">
                 <p>
                     <label>{{'APPOINTMENT_CREATE_PATIENT_NAME' | translate}}<sup class="asterick">*</sup></label>
-
                     <input type="text"
                            id="patientID"
                            min-length="minCharLengthToTriggerPatientSearch"
@@ -102,6 +101,27 @@
                             ng-disabled="isEditMode() && !isEditAllowed()"/>
                     <span class="slots-remaining"></span>
                 </p>
+                <p>
+                    <label>
+                        Ph. Number
+                    </label>
+                    <input type="text"
+                           id="phNumber"
+                           min-length=10
+                           bahmni-autocomplete
+                           ng-model="phNumber"
+                           response-map="responseMap"
+                           on-select="onSelectPatient"
+                           strict-select="true"
+                           ng-class="{'illegalValue': isInvalid}"
+                           placeholder="Patient Ph. Number"
+                           non-blank
+                           ng-disabled="isEditMode()"
+                           required
+                    />
+
+                </p>
+
                 <p class="warning-message" ng-if="warning.appointmentDate">
                     <i class="fa fa-exclamation-triangle"></i>
                     <span> {{'APPOINTMENT_CREATION_DATE_WARNING' | translate}} </span>
