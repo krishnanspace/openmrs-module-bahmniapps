@@ -11,7 +11,7 @@ angular.module('bahmni.appointments')
             $scope.enableSpecialities = appService.getAppDescriptor().getConfigValue('enableSpecialities');
             $scope.enableServiceTypes = appService.getAppDescriptor().getConfigValue('enableServiceTypes');
             var gateway = appService.getSmsDescriptor().getConfigValue('gateway');
-            var appointmentMessage = appService.getSmsDescriptor().getConfigValue('appointmentMessage');
+            var appointmentMessage = appService.getSmsDescriptor().getConfigValue('createAppointmentMessage');
             var smsSender = appService.getSmsDescriptor().getConfigValue('sender');
             var route = appService.getSmsDescriptor().getConfigValue('route');
             var authkey = appService.getSmsDescriptor().getConfigValue('authkey');
@@ -25,7 +25,7 @@ angular.module('bahmni.appointments')
             $scope.enableEditService = appService.getAppDescriptor().getConfigValue('isServiceOnAppointmentEditable');
             $scope.showStartTimes = [];
             $scope.showEndTimes = [];
-            $scope.phNumber = "7588323843";
+            $scope.phNumber = "*";
             var patientSearchURL = appService.getAppDescriptor().getConfigValue('patientSearchUrl');
             var loginLocationUuid = sessionService.getLoginLocationUuid();
             $scope.minCharLengthToTriggerPatientSearch = appService.getAppDescriptor().getConfigValue('minCharLengthToTriggerPatientSearch') || 3;
@@ -55,9 +55,6 @@ angular.module('bahmni.appointments')
                 }
 
                 $scope.validatedAppointment = Bahmni.Appointments.Appointment.create($scope.appointment);
-                console.log(JSON.stringify($scope.appointment));
-                console.log("__________________________");
-                console.log(JSON.stringify($scope.validatedAppointment));
                 var isoDate = $scope.validatedAppointment.startDateTime;
                 var localDate = moment(isoDate).format('D MMM YYYY');
                 var localTime = moment(isoDate).format('h:mm A');
@@ -88,31 +85,6 @@ angular.module('bahmni.appointments')
                             message:appointmentMessage
                         }
                     });
-                    /*$http.get('http://api.msg91.com/api/sendhttp.php?', {
-                        method: "GET",
-                        params : {
-                            sender: "MSGIND",
-                            route: "4",
-                            mobiles: "917588323843",
-                            authkey: "217942AsvRsWl3yc5b0e4bc5",
-                            country: 91,
-                            message: "Gordon Cole"
-
-                        }
-                        }).then(function(data){
-                            alert(data);
-                    });*/
-                    /*var settings = {
-                        "async": true,
-                        "crossDomain": true,
-                        "url": "//api.msg91.com/api/sendhttp.php?sender=MSGIND&route=4&mobiles=917588323843&authkey=217942AsvRsWl3yc5b0e4bc5&country=91&message=Remember BoB",
-                        "method": "GET",
-                        "headers": {}
-                    }
-
-                    $.ajax(settings).done(function (response) {
-                        alert(response);
-                    });*/
                     return saveAppointment($scope.validatedAppointment);
                 } else {
                     $scope.displayConflictConfirmationDialog();

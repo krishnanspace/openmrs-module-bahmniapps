@@ -21,6 +21,7 @@ angular.module('bahmni.appointments')
                 popUpScope.patient = scope.patientList.length === 1 ? scope.patientList[0] : undefined;
                 popUpScope.manageAppointmentPrivilege = Bahmni.Appointments.Constants.privilegeManageAppointments;
                 popUpScope.allowedActions = appService.getAppDescriptor().getConfigValue('allowedActions') || [];
+
                 popUpScope.allowedActionsByStatus = appService.getAppDescriptor().getConfigValue('allowedActionsByStatus') || {};
 
                 popUpScope.navigateTo = function (state, appointment) {
@@ -48,10 +49,11 @@ angular.module('bahmni.appointments')
                 };
 
                 var changeStatus = function (appointment, toStatus, onDate, closeConfirmBox) {
+                    console.log(JSON.stringify(appointment));
                     var message = $translate.instant('APPOINTMENT_STATUS_CHANGE_SUCCESS_MESSAGE', {
                         toStatus: toStatus
                     });
-                    return appointmentsService.changeStatus(appointment.uuid, toStatus, onDate).then(function () {
+                    return appointmentsService.changeStatus(appointment.uuid, toStatus, onDate, appointment).then(function () {
                         appointment.status = toStatus;
                         closeConfirmBox();
                         messagingService.showMessage('info', message);

@@ -3,6 +3,14 @@
 angular.module('bahmni.appointments')
     .service('appointmentsService', ['$http', 'appService',
         function ($http, appService) {
+
+            var gateway = appService.getSmsDescriptor().getConfigValue('gateway');
+            var cancelAppointmentMessage = appService.getSmsDescriptor().getConfigValue('cancelAppointmentMessage');
+            var smsSender = appService.getSmsDescriptor().getConfigValue('sender');
+            var route = appService.getSmsDescriptor().getConfigValue('route');
+            var authkey = appService.getSmsDescriptor().getConfigValue('authkey');
+            var country = appService.getSmsDescriptor().getConfigValue('country');
+
             this.save = function (appointment) {
                 return $http.post(Bahmni.Appointments.Constants.createAppointmentUrl, appointment, {
                     withCredentials: true,
@@ -50,12 +58,44 @@ angular.module('bahmni.appointments')
                 });
             };
 
-            this.changeStatus = function (appointmentUuid, toStatus, onDate) {
+            this.changeStatus = function (appointmentUuid, toStatus, onDate, appointment) {
                 var params = {toStatus: toStatus, onDate: onDate};
+                var localDate = moment.unix(appointment.startDateTime/1000).format("D MMM YYYY");
+                var localTime = moment.unix(appointment.startDateTime/1000).format("h:mm A");
+
+
+                var mapObj = {
+                    name:appointment.patient.name,
+                    serviceName:appointment.service.name,
+                    providerName:appointment.provider.name,
+                    appointmentDate:localDate,
+                    appointmentTime:localTime
+
+                };
+
+                cancelAppointmentMessage = cancelAppointmentMessage.replace(/name|serviceName|providerName|appointmentDate|appointmentTime/gi, function(matched){
+                    return mapObj[matched];
+                });
                 var changeStatusUrl = appService.getAppDescriptor().formatUrl(Bahmni.Appointments.Constants.changeAppointmentStatusUrl, {appointmentUuid: appointmentUuid});
                 return $http.post(changeStatusUrl, params, {
                     withCredentials: true,
                     headers: {"Accept": "application/json", "Content-Type": "application/json"}
+                }).success(function(data){
+                    if(toStatus == "Cancelled"){
+                        var mobnum = "*";
+                        $http.get(gateway, {
+                            method: "GET",
+                            params: {
+                                sender: smsSender,
+                                route: route,
+                                mobiles: mobnum,
+                                authkey: authkey,
+                                country: country,
+                                message:cancelAppointmentMessage
+                            }
+                        });
+                    }
+
                 });
             };
 
