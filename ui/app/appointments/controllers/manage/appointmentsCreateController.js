@@ -10,6 +10,12 @@ angular.module('bahmni.appointments')
             $scope.showConfirmationPopUp = true;
             $scope.enableSpecialities = appService.getAppDescriptor().getConfigValue('enableSpecialities');
             $scope.enableServiceTypes = appService.getAppDescriptor().getConfigValue('enableServiceTypes');
+            $scope.appointmentMessage = appService.getSmsDescriptor().getConfigValue('appointmentMessage');
+            $scope.smsSender = appService.getSmsDescriptor().getConfigValue('sender');
+            $scope.route = appService.getSmsDescriptor().getConfigValue('route');
+            $scope.authkey = appService.getSmsDescriptor().getConfigValue('authkey');
+            $scope.country = appService.getSmsDescriptor().getConfigValue('country');
+
             $scope.today = Bahmni.Common.Util.DateUtil.getDateWithoutTime(Bahmni.Common.Util.DateUtil.now());
             $scope.timeRegex = Bahmni.Appointments.Constants.regexForTime;
             $scope.warning = {};
@@ -48,6 +54,26 @@ angular.module('bahmni.appointments')
                 }
 
                 $scope.validatedAppointment = Bahmni.Appointments.Appointment.create($scope.appointment);
+                var appointmentMessageToDisplay = $scope.appointmentMessage;
+                console.log(JSON.stringify($scope.appointment));
+                console.log("__________________________");
+                console.log(JSON.stringify($scope.validatedAppointment));
+                var isoDate = $scope.validatedAppointment.startDateTime;
+                var localDate = moment(isoDate).format('D MMM YYYY');
+                var localTime = moment(isoDate).format('h:mm A');
+
+                var mapObj = {
+                    name:$scope.appointment.patient.value,
+                    serviceName:$scope.appointment.service.name,
+                    providerName:$scope.appointment.provider.person.display,
+                    appointmentDate:localDate,
+                    appointmentTime:localTime
+
+                };
+
+                appointmentMessageToDisplay = appointmentMessageToDisplay.replace(/name|serviceName|providerName|appointmentDate|appointmentTime/gi, function(matched){
+                   return mapObj[matched];
+                });
                 var conflictingAppointments = getConflictingAppointments($scope.validatedAppointment);
                 if (conflictingAppointments.length === 0) {
                     return saveAppointment($scope.validatedAppointment);
@@ -86,7 +112,7 @@ angular.module('bahmni.appointments')
                 $scope.appointment.patient = data;
                 return spinner.forPromise(appointmentsService.search({patientUuid: data.uuid}).then(function (oldAppointments) {
                     $scope.patientAppointments = oldAppointments.data;
-                    getPhNumber(data.identifier);
+                    //getPhNumber(data.identifier);
                 }));
 
             };

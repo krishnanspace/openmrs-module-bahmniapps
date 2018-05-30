@@ -10,6 +10,7 @@ angular.module('bahmni.common.appFramework')
             var baseUrl = Bahmni.Common.Constants.baseUrl;
             var customUrl = Bahmni.Common.Constants.customUrl;
             var appDescriptor = null;
+            var smsDescriptor = null;
 
             var loadConfig = function (url) {
                 return loadConfigService.loadConfig(url, appDescriptor.contextPath);
@@ -43,6 +44,14 @@ angular.module('bahmni.common.appFramework')
                 }
             };
 
+            var setSmsDefinition = function (baseResultData, customResultData) {
+                if (customResultData && (_.keys(baseResultData).length > 0 || _.keys(customResultData.length > 0))) {
+                    smsDescriptor.setDefinition(baseResultData, customResultData);
+                } else if (_.keys(baseResultData).length > 0) {
+                    smsDescriptor.setDefinition(baseResultData);
+                }
+            };
+
             var loadDefinition = function (appDescriptor) {
                 var deferrable = $q.defer();
                 loadConfig(baseUrl + appDescriptor.contextPath + "/app.json").then(
@@ -67,6 +76,32 @@ angular.module('bahmni.common.appFramework')
                         deferrable.resolve(appDescriptor);
                     }
                 });
+                return deferrable.promise;
+            };
+            var loadSmsSettings = function (smsDescriptor) {
+                var deferrable = $q.defer();
+                loadConfig(baseUrl + smsDescriptor.contextPath + "/smsSettings.json").then(
+                    function (baseResult) {
+                        if (baseResult.data.shouldOverRideConfig) {
+                            loadConfig(customUrl + smsDescriptor.contextPath + "/smsSettings.json").then(function (customResult) {
+                                    setDefinition(baseResult.data, customResult.data);
+                                    deferrable.resolve(smsDescriptor);
+                                },
+                                function () {
+                                    setDefinition(baseResult.data);
+                                    deferrable.resolve(smsDescriptor);
+                                });
+                        } else {
+                            setSmsDefinition(baseResult.data);
+                            deferrable.resolve(smsDescriptor);
+                        }
+                    }, function (error) {
+                        if (error.status !== 404) {
+                            deferrable.reject(error);
+                        } else {
+                            deferrable.resolve(smsDescriptor);
+                        }
+                    });
                 return deferrable.promise;
             };
 
@@ -144,8 +179,13 @@ angular.module('bahmni.common.appFramework')
                 });
                 return deferrable.promise;
             };
+
             this.getAppDescriptor = function () {
                 return appDescriptor;
+            };
+
+            this.getSmsDescriptor = function () {
+                return smsDescriptor;
             };
 
             this.configBaseUrl = function () {
@@ -196,13 +236,19 @@ angular.module('bahmni.common.appFramework')
                 var appLoader = $q.defer();
                 var extensionFileName = (extensionFileSuffix && extensionFileSuffix.toLowerCase() !== 'default') ? "/extension-" + extensionFileSuffix + ".json" : "/extension.json";
                 var promises = [];
-                var opts = options || {'app': true, 'extension': true};
+                var opts = options || {'app': true, 'extension': true, 'sms': true};
 
                 var inheritAppContext = (!opts.inherit) ? true : opts.inherit;
 
                 appDescriptor = new Bahmni.Common.AppFramework.AppDescriptor(appName, inheritAppContext, function () {
                     return currentUser;
                 }, mergeService);
+
+                smsDescriptor = new Bahmni.Common.AppFramework.AppDescriptor(appName, inheritAppContext, function () {
+                    return currentUser;
+                }, mergeService);
+
+
 
                 var loadCredentialsPromise = sessionService.loadCredentials();
                 var loadProviderPromise = loadCredentialsPromise.then(sessionService.loadProviders);
@@ -217,15 +263,18 @@ angular.module('bahmni.common.appFramework')
                 }
                 if (opts.app) {
                     promises.push(loadDefinition(appDescriptor));
+                    promises.push(loadSmsSettings(smsDescriptor));
                 }
                 if (!_.isEmpty(configPages)) {
                     configPages.forEach(function (configPage) {
                         promises.push(loadPageConfig(configPage, appDescriptor));
+                        promises.push(loadPageConfig(configPage, smsDescriptor));
                     });
                 }
                 $q.all(promises).then(function (results) {
                     currentUser = results[0];
                     appLoader.resolve(appDescriptor);
+                    appLoader.resolve(smsDescriptor);
                     $rootScope.$broadcast('event:appExtensions-loaded');
                 }, function (errors) {
                     appLoader.reject(errors);
