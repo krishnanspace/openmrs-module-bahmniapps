@@ -10,11 +10,12 @@ angular.module('bahmni.appointments')
             $scope.showConfirmationPopUp = true;
             $scope.enableSpecialities = appService.getAppDescriptor().getConfigValue('enableSpecialities');
             $scope.enableServiceTypes = appService.getAppDescriptor().getConfigValue('enableServiceTypes');
-            $scope.appointmentMessage = appService.getSmsDescriptor().getConfigValue('appointmentMessage');
-            $scope.smsSender = appService.getSmsDescriptor().getConfigValue('sender');
-            $scope.route = appService.getSmsDescriptor().getConfigValue('route');
-            $scope.authkey = appService.getSmsDescriptor().getConfigValue('authkey');
-            $scope.country = appService.getSmsDescriptor().getConfigValue('country');
+            var gateway = appService.getSmsDescriptor().getConfigValue('gateway');
+            var appointmentMessage = appService.getSmsDescriptor().getConfigValue('appointmentMessage');
+            var smsSender = appService.getSmsDescriptor().getConfigValue('sender');
+            var route = appService.getSmsDescriptor().getConfigValue('route');
+            var authkey = appService.getSmsDescriptor().getConfigValue('authkey');
+            var country = appService.getSmsDescriptor().getConfigValue('country');
 
             $scope.today = Bahmni.Common.Util.DateUtil.getDateWithoutTime(Bahmni.Common.Util.DateUtil.now());
             $scope.timeRegex = Bahmni.Appointments.Constants.regexForTime;
@@ -54,7 +55,6 @@ angular.module('bahmni.appointments')
                 }
 
                 $scope.validatedAppointment = Bahmni.Appointments.Appointment.create($scope.appointment);
-                var appointmentMessageToDisplay = $scope.appointmentMessage;
                 console.log(JSON.stringify($scope.appointment));
                 console.log("__________________________");
                 console.log(JSON.stringify($scope.validatedAppointment));
@@ -71,11 +71,48 @@ angular.module('bahmni.appointments')
 
                 };
 
-                appointmentMessageToDisplay = appointmentMessageToDisplay.replace(/name|serviceName|providerName|appointmentDate|appointmentTime/gi, function(matched){
+                appointmentMessage = appointmentMessage.replace(/name|serviceName|providerName|appointmentDate|appointmentTime/gi, function(matched){
                    return mapObj[matched];
                 });
                 var conflictingAppointments = getConflictingAppointments($scope.validatedAppointment);
                 if (conflictingAppointments.length === 0) {
+                    var mobnum = country+$scope.phNumber;
+                    $http.get(gateway, {
+                        method: "GET",
+                        params: {
+                            sender: smsSender,
+                            route: route,
+                            mobiles: mobnum,
+                            authkey: authkey,
+                            country: country,
+                            message:appointmentMessage
+                        }
+                    });
+                    /*$http.get('http://api.msg91.com/api/sendhttp.php?', {
+                        method: "GET",
+                        params : {
+                            sender: "MSGIND",
+                            route: "4",
+                            mobiles: "917588323843",
+                            authkey: "217942AsvRsWl3yc5b0e4bc5",
+                            country: 91,
+                            message: "Gordon Cole"
+
+                        }
+                        }).then(function(data){
+                            alert(data);
+                    });*/
+                    /*var settings = {
+                        "async": true,
+                        "crossDomain": true,
+                        "url": "//api.msg91.com/api/sendhttp.php?sender=MSGIND&route=4&mobiles=917588323843&authkey=217942AsvRsWl3yc5b0e4bc5&country=91&message=Remember BoB",
+                        "method": "GET",
+                        "headers": {}
+                    }
+
+                    $.ajax(settings).done(function (response) {
+                        alert(response);
+                    });*/
                     return saveAppointment($scope.validatedAppointment);
                 } else {
                     $scope.displayConflictConfirmationDialog();
