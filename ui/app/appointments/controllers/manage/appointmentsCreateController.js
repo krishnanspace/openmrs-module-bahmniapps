@@ -121,13 +121,16 @@ angular.module('bahmni.appointments')
                 $scope.appointment.patient = data;
                 return spinner.forPromise(appointmentsService.search({patientUuid: data.uuid}).then(function (oldAppointments) {
                     $scope.patientAppointments = oldAppointments.data;
-                    //getPhNumber(data.identifier);
+                    getPhNumber(data.identifier);
                 }));
 
             };
 
-            var getPhNumber = function (identifier) {
-                alert(identifier);
+            var getPhNumber = function (identifier, offset) {
+                return (spinner.forPromise(patientService.getPhNum($scope.appointment.patient.label)).then(function (response) {
+                    alert(response.data.pageOfResults);
+                    return response.data.pageOfResults;
+                }));
             };
 
             var clearSlotsInfo = function () {

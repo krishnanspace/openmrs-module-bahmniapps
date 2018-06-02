@@ -1,8 +1,8 @@
 'use strict';
 
 angular.module('bahmni.registration')
-    .controller('CreatePatientController', ['$scope', '$rootScope', '$state', 'patientService', 'patient', 'spinner', 'appService', 'messagingService', 'ngDialog', '$q',
-        function ($scope, $rootScope, $state, patientService, patient, spinner, appService, messagingService, ngDialog, $q) {
+    .controller('CreatePatientController', ['$scope', '$rootScope', '$state', 'patientService', 'patient', 'spinner', 'appService', 'messagingService', 'ngDialog', '$q', '$http',
+        function ($scope, $rootScope, $state, patientService, patient, spinner, appService, messagingService, ngDialog, $q, $http) {
             var dateUtil = Bahmni.Common.Util.DateUtil;
             $scope.actions = {};
             var errorMessage;
@@ -11,6 +11,16 @@ angular.module('bahmni.registration')
             $scope.disablePhotoCapture = appService.getAppDescriptor().getConfigValue("disablePhotoCapture");
             $scope.showEnterID = configValueForEnterId === null ? true : configValueForEnterId;
             $scope.today = Bahmni.Common.Util.DateTimeFormatter.getDateWithoutTime(dateUtil.now());
+
+            var gateway = appService.getSmsDescriptor().getConfigValue('gateway');
+            var patientRegisteredMessage = appService.getSmsDescriptor().getConfigValue('patientRegisteredMessage');
+            var smsSender = appService.getSmsDescriptor().getConfigValue('sender');
+            var route = appService.getSmsDescriptor().getConfigValue('route');
+            var authkey = appService.getSmsDescriptor().getConfigValue('authkey');
+            var country = appService.getSmsDescriptor().getConfigValue('country');
+            var phNum = "";
+
+
 
             var getPersonAttributeTypes = function () {
                 return $rootScope.patientConfiguration.attributeTypes;
@@ -179,10 +189,31 @@ angular.module('bahmni.registration')
             };
 
             $scope.afterSave = function () {
+                var fullName = $scope.patient.givenName+" "+$scope.patient.familyName;
+                phNum = country+$scope.patient.primaryContact;
+                var mapObj = {
+                    name: fullName
+                };
+
+                patientRegisteredMessage = patientRegisteredMessage.replace(/name/gi, function(matched){
+                    return mapObj[matched];
+                });
                 messagingService.showMessage("info", "REGISTRATION_LABEL_SAVED");
                 $state.go("patient.edit", {
                     patientUuid: $scope.patient.uuid
                 });
+                $http.get(gateway, {
+                    method: "GET",
+                    params: {
+                        sender: smsSender,
+                        route: route,
+                        mobiles: phNum,
+                        authkey: authkey,
+                        country: country,
+                        message:patientRegisteredMessage
+                    }
+                });
+
             };
         }
     ]);

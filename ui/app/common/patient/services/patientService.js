@@ -41,6 +41,20 @@ angular.module('bahmni.common.patient')
             });
         };
 
+        this.getPhNum = function (query, offset, identifier) {
+            offset = offset || 0;
+            return $http.get(Bahmni.Common.Constants.bahmniGetPhNum + "/patient", {
+                method: "GET",
+                params: {
+                    q: query,
+                    startIndex: offset,
+                    identifier: identifier,
+                    loginLocationUuid: sessionService.getLoginLocationUuid()
+                },
+                withCredentials: true
+            });
+        };
+
         this.getPatientContext = function (patientUuid, programUuid, personAttributes, programAttributes, patientIdentifiers) {
             return $http.get('/openmrs/ws/rest/v1/bahmnicore/patientcontext', {
                 params: {
