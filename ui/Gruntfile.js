@@ -302,6 +302,15 @@ module.exports = function (grunt) {
                             'i18n/**/*.json',
                             'lib/**/*'
                         ]
+                    },
+                    {
+                        expand: true,
+                        dot: true,
+                        cwd: '<%= yeoman.app %>/common/bootstrap/fonts',
+                        dest: '<%= yeoman.dist %>/fonts',
+                        src: [
+                                '*.*'
+                        ]
                     }
                 ]
             },

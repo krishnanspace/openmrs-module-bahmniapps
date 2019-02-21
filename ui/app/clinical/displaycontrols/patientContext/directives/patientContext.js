@@ -10,7 +10,6 @@ angular.module('bahmni.clinical')
                 $scope.patientContext = response.data;
                 var programAttributes = $scope.patientContext.programAttributes;
                 var personAttributes = $scope.patientContext.personAttributes;
-
                 convertBooleanValuesToEnglish(personAttributes);
                 convertBooleanValuesToEnglish(programAttributes);
 
@@ -31,6 +30,10 @@ angular.module('bahmni.clinical')
                 }
                 $scope.patientContext.gender = $rootScope.genderMap[$scope.patientContext.gender];
             });
+
+            $scope.isEmptyObject = function(obj) {
+                return angular.equals({}, obj);
+            }
         };
 
         var link = function ($scope, element) {

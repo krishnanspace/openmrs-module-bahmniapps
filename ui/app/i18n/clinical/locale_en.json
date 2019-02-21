@@ -1,4 +1,8 @@
-{
+{   
+    "STATUS_PATIENT_ACTIVE":"Status: Active",
+    "STATUS_PATIENT_DEAD":"Status: Closed Assistance - Dead",
+    "STATUS_PATIENT_TRANSFERRED_OUT":"Status: Closed Assistance - Transferred out",
+    "REGISTRATION_LABEL_REGISTRATION_DATE":"Reg-Date",
     "CONSULTATION_TAB_KEY": "<u>C</u>onsultation",
     "CONSULTATION_SHORTCUT_KEY": "c",
     "NO_ACTIVE_PASSIVE_PROGRAMS_MESSAGE": "No active/inactive programs for this patient.",

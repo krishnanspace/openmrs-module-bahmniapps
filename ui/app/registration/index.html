@@ -4,15 +4,19 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width" />
         <title>{{'REGISTRATION_TITLE_KEY' | translate}}</title>
+
         <link rel="shortcut icon" type="image/x-icon" href="../favicon.ico">
         <link rel="stylesheet" href="../lib/jquery/jquery-ui-1.10.4.custom.min.css">
         <link rel="stylesheet" href="../components/select2/select2.css"/>
         <!-- build:css registration.min.css -->
+        <link rel="stylesheet" href="../common/bootstrap/css/bootstrap.css">
         <link rel="stylesheet" href="../styles/registration.css"/>
         <!-- endbuild -->
         <link rel="stylesheet" href="../components/ngDialog/css/ngDialog.min.css"/>
         <link rel="stylesheet" href="../components/ngDialog/css/ngDialog-theme-default.min.css"/>
         <link rel="stylesheet" href="../components/ngDialog/css/ngDialog-theme-plain.min.css"/>
+        
+        
     </head>
     <body>
         <div class="reg-wrapper">
@@ -61,6 +65,8 @@
         <script src="../lib/angular-workers/dist/angular-workers.js"></script>
 
         <script src="../common/route-errorhandler/init.js"></script>
+
+        <script src="../common/registrationNaturalFilter/registrationNaturalFilter.js"></script>
         <script src="../common/util/init.js"></script>
         <script src="../common/util/dateUtil.js"></script>
         <script src="../common/util/validationUtil.js"></script>
@@ -98,6 +104,7 @@
         <script src="../common/ui-helper/directives/ngConfirmClick.js"></script>
         <script src="../common/ui-helper/directives/bmShow.js"></script>
         <script src="../common/ui-helper/directives/monthyearpicker.js"></script>
+        <script src="../common/ui-helper/directives/singleClick.js"></script>
         <script src="../common/ui-helper/directives/singleSubmit.js"></script>
 
         <script src="../common/uicontrols/init.js"></script>
@@ -243,6 +250,7 @@
         <script src="../common/util/dateTimeFormatter.js"></script>
         <script src="../common/logging/services/loggingService.js"></script>
         <script src="../common/domain/services/observationsService.js"></script>
+        <script src="../common/angularjs-dropdown/src/angularjs-dropdown-multiselect.js"></script>
         <script src="../common/domain/services/encounterService.js"></script>
         <script src="../common/concept-set/services/conceptSetServices.js"></script>
         <script src="common/auditLogEventDetails.js"></script>

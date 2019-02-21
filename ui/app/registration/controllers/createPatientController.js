@@ -16,6 +16,11 @@ angular.module('bahmni.registration')
                 return $rootScope.patientConfiguration.attributeTypes;
             };
 
+
+            $scope.shouldShowDeathConcepts =   true;
+            $scope.shouldShowTransferSection = true;
+            $scope.shouldShowTransferenceSection = true;
+
             var prepopulateDefaultsInFields = function () {
                 var personAttributeTypes = getPersonAttributeTypes();
                 var patientInformation = appService.getAppDescriptor().getConfigValue("patientInformation");
@@ -162,6 +167,19 @@ angular.module('bahmni.registration')
             };
 
             $scope.create = function () {
+                var removed = _.remove( $scope.patient.extraIdentifiers, function(currentObject) {
+                    return currentObject.identifierType.name !== "NID (SERVIÇO TARV)";
+                });
+                if($rootScope.allExtraIdentifiers.length == 0 ){
+
+                    if($rootScope.additionalExtraIdentifiers !== undefined){
+                        $scope.patient.extraIdentifiers = $scope.patient.extraIdentifiers.concat($rootScope.additionalExtraIdentifiers);
+                    }
+                    
+                }
+                else{
+                $scope.patient.extraIdentifiers = $scope.patient.extraIdentifiers.concat($rootScope.allExtraIdentifiers); 
+                }
                 addNewRelationships();
                 var errorMessages = Bahmni.Common.Util.ValidationUtil.validate($scope.patient, $scope.patientConfiguration.attributeTypes);
                 if (errorMessages.length > 0) {

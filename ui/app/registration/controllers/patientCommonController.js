@@ -1,12 +1,73 @@
 'use strict';
 
 angular.module('bahmni.registration')
-    .controller('PatientCommonController', ['$scope', '$rootScope', '$http', 'patientAttributeService', 'appService', 'spinner', '$location', 'ngDialog', '$window', '$state',
-        function ($scope, $rootScope, $http, patientAttributeService, appService, spinner, $location, ngDialog, $window, $state) {
+    .controller('PatientCommonController', ['$scope', '$rootScope', '$http', 'patientAttributeService', 'appService', 'spinner', '$location', 'ngDialog', '$window', '$state', 'patientService',
+        function ($scope, $rootScope, $http, patientAttributeService, appService, spinner, $location, ngDialog, $window, $state, patientService) {
             var autoCompleteFields = appService.getAppDescriptor().getConfigValue("autoCompleteFields", []);
             var showCasteSameAsLastNameCheckbox = appService.getAppDescriptor().getConfigValue("showCasteSameAsLastNameCheckbox");
             var personAttributes = [];
             var caste;
+            var isTransferenceClicked = false;
+            var is_transferredClicked = false;
+            $scope.deathToggle = false;
+
+            $rootScope.patients;
+            $rootScope.countNo;
+            $rootScope.visibleData = false;
+
+            $scope.checkDuplicate = function () {
+               var patientGivenName = $scope.patient.givenName || '';
+               var patientLastName = $scope.patient.familyName || '';
+               var gender = $scope.patient.gender || '';
+               var birthDate = $scope.patient.birthdate || '';
+               if(birthDate != '') {
+                birthDate = new Date(birthDate);
+                birthDate = convertDate(birthDate);
+               }
+               var queryParams = patientGivenName+' '+patientLastName;
+               
+
+               if( queryParams.length > 0) {
+                patientService.searchDuplicatePatients(queryParams,gender,birthDate).then(function(response){
+                    console.log(response);
+                    $rootScope.patients = response.pageOfResults;
+                    $rootScope.visibleData = true;
+                    $rootScope.countNo = $scope.patients.length;
+                });
+
+               } else {
+                $rootScope.visibleData = false;
+               }
+            };
+
+            var convertDate = function (date) {
+
+                var yyyy = date.getFullYear().toString();
+                var mm = (date.getMonth()+1).toString();
+                var dd  = date.getDate().toString();
+
+                var mmChars = mm.split('');
+                var ddChars = dd.split('');
+
+                return yyyy + '-' + (mmChars[1]?mm:"0"+mmChars[0]) + '-' + (ddChars[1]?dd:"0"+ddChars[0]);
+            }
+
+            $scope.extraIdentifiersDisplay = _.map($scope.patient.extraIdentifiers,function(some,index){
+                return _.pick(some.identifierType,['name']);
+            });
+            var removed = _.remove( $scope.extraIdentifiersDisplay, function(item){
+              return item.name == "NID (SERVIÇO TARV)";  
+            }); 
+
+
+            $scope.extraIdentifiersDisplay = _.map($scope.extraIdentifiersDisplay, function(some,index){
+                some.id = index;
+                return some;
+            });
+
+            $scope.selectedExtraIdentifiers = [];
+ 
+
             $scope.showMiddleName = appService.getAppDescriptor().getConfigValue("showMiddleName");
             $scope.showLastName = appService.getAppDescriptor().getConfigValue("showLastName");
             $scope.isLastNameMandatory = $scope.showLastName && appService.getAppDescriptor().getConfigValue("isLastNameMandatory");
@@ -19,11 +80,60 @@ angular.module('bahmni.registration')
             $scope.showSaveAndContinueButton = false;
 
             var dontSaveButtonClicked = false;
-
             var isHref = false;
+            $scope.additionalExtraIdentifiers = new Array();
+            $rootScope.allExtraIdentifiers = [];
+            var newObj = new Object();
+            var tempObj = new Object();
+
+            $scope.checkBirthdateEstimated = function () {
+               if($scope.patient.age.years != null || $scope.patient.age.months != null || $scope.patient.age.days != null) {
+                $scope.patient.birthdateEstimated = true;
+               }
+               else {
+                $scope.patient.birthdateEstimated = false;
+               }
+            };
+
+            $scope.createPatientsDropdownEvents = {
+                onItemSelect: function(item) {
+                              newObj = _.filter($scope.patient.extraIdentifiers, function(obj){
+                                if( obj.identifierType.name == item.name){
+                                    obj.id = item.id;
+                                    return obj;
+                                }
+                              });
+                              $scope.additionalExtraIdentifiers.push(newObj[0]);
+                              $rootScope.additionalExtraIdentifiers = $scope.additionalExtraIdentifiers;
+                         },
+
+                onItemDeselect: function(item) {
+                    var removed = _.remove($rootScope.additionalExtraIdentifiers, function(n){
+                        return n.id == item.id;
+                    });
+                },
+
+                onSelectAll: function () {
+                               $scope.additionalExtraIdentifiers = [];
+                                tempObj = _.filter($scope.patient.extraIdentifiers, function(obj,index){
+                                if( obj.identifierType.name !== "NID (SERVIÇO TARV)"){
+                                    obj.id = index-1;
+                                    return obj;
+                                }
+                              });
+                               $scope.additionalExtraIdentifiers = tempObj;
+                               $rootScope.allExtraIdentifiers = $scope.additionalExtraIdentifiers;
+                },
+
+                onDeselectAll: function () {
+                    $scope.additionalExtraIdentifiers = [];
+                    $rootScope.allExtraIdentifiers = [];
+                    $rootScope.additionalExtraIdentifiers = [];
+                }
+            };
 
             $rootScope.onHomeNavigate = function (event) {
-                if ($scope.showSaveConfirmDialogConfig) {
+                if ($scope.showSaveConfirmDialogConfig && $state.current.name != "patient.visit") {
                     event.preventDefault();
                     $scope.targetUrl = event.currentTarget.getAttribute('href');
                     isHref = true;
@@ -140,7 +250,64 @@ angular.module('bahmni.registration')
                 hideSections(attributesShowOrHideMap.hide, patientAttributesSections);
             };
 
+             $scope.clearTransferSection = function (value) {
+                $scope.patient.isDead = value;
+                if(value === true){
+                    $scope.patient.is_transferred = false;
+                    $scope.patient.transfer_out_date = null;
+                    $scope.patient.transfer_out_reason = null;
+                    is_transferredClicked = false;
+
+                }
+                
+            };
+
+            $scope.selectIsTransferred = function () {
+                if($scope.patient.transfer_out_reason || $scope.patient.transfer_out_date) {
+                    console.log($scope.patient);
+                    $scope.patient.is_transferred = true;
+                    is_transferredClicked = !is_transferredClicked;
+                   if(is_transferredClicked == true) {
+                        $scope.patient.dead = !is_transferredClicked;
+                        $scope.patient.causeOfDeath = null;
+                        $scope.patient.deathDate = null;
+
+                        $scope.patient['Transferred from another HF'] = !is_transferredClicked;
+                        $scope.patient['Transferred out HF name'] = null;
+                        $scope.patient['Date of transference'] = null;
+                        $scope.patient['Patient stage'] = null;
+                   }
+               }
+            };
+
             $scope.handleUpdate = function (attribute) {
+
+                if (attribute == 'is_transferred') {
+                   is_transferredClicked = !is_transferredClicked;
+                   if(is_transferredClicked == true) {
+                    $scope.patient.dead = !is_transferredClicked;
+                    $scope.patient.causeOfDeath = null;
+                    $scope.patient.deathDate = null;
+
+                    $scope.patient['Transferred from another HF'] = !is_transferredClicked;
+                    $scope.patient['Transferred out HF name'] = null;
+                    $scope.patient['Date of transference'] = null;
+                    $scope.patient['Patient stage'] = null;
+                   }
+                   
+                }
+
+                
+                if (attribute == 'Transferred from another HF') {
+                    isTransferenceClicked = !isTransferenceClicked;
+                    if ( isTransferenceClicked == true ) {
+                        $scope.patient.is_transferred = false;
+                        $scope.patient.transfer_out_date = null;
+                        $scope.patient.transfer_out_reason = null;
+                        isTransferenceClicked = false;
+                    }
+                    
+                }
                 var ruleFunction = Bahmni.Registration.AttributesConditions.rules && Bahmni.Registration.AttributesConditions.rules[attribute];
                 if (ruleFunction) {
                     executeRule(ruleFunction);
@@ -182,11 +349,18 @@ angular.module('bahmni.registration')
             $scope.selectIsDead = function () {
                 if ($scope.patient.causeOfDeath || $scope.patient.deathDate) {
                     $scope.patient.dead = true;
+                    $scope.patient.is_transferred = false;
+                    $scope.patient.transfer_out_date = null;
+                    $scope.patient.transfer_out_reason = null;
+                    is_transferredClicked = false;
                 }
+            };
+
+            $scope.disableIsTransferred = function () {
+                return $scope.patient.transfer_out_reason;
             };
 
             $scope.disableIsDead = function () {
                 return ($scope.patient.causeOfDeath || $scope.patient.deathDate) && $scope.patient.dead;
             };
         }]);
-

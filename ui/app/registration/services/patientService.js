@@ -30,6 +30,19 @@ angular.module('bahmni.registration')
             return patientServiceStrategy.search(config);
         };
 
+        var searchDuplicatePatients = function (query, gender, birthDate) {
+            var config = {
+                params: {
+                    q: query,
+                    gender: gender,
+                    birthDate: birthDate,
+                    loginLocationUuid: sessionService.getLoginLocationUuid()
+                },
+                withCredentials: true
+            };
+            return patientServiceStrategy.searchDuplicatePatients(config);
+        };
+
         var searchByIdentifier = function (identifier) {
             return $http.get(Bahmni.Common.Constants.bahmniSearchUrl + "/patient", {
                 method: "GET",
@@ -81,6 +94,7 @@ angular.module('bahmni.registration')
 
         return {
             search: search,
+            searchDuplicatePatients: searchDuplicatePatients,
             searchByIdentifier: searchByIdentifier,
             create: create,
             update: update,

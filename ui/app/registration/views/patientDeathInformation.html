@@ -28,7 +28,7 @@
                 <label for="isDead" class="till-text"><span>{{ ::'REGISTRATION_LABEL_IS_DEAD' | translate}}</span></label>
             </div>
             <div class="field-value">
-                <input type="checkbox" id="isDead" class="isDeadChkBox" ng-model="patient.dead" ng-disabled="disableIsDead()"/>
+                <input type="checkbox" id="isDead" class="isDeadChkBox" ng-model="patient.dead" ng-change="::clearTransferSection(patient.dead)" ng-disabled="disableIsDead()"/>
             </div>
 
             <div class="field-attribute showOn-desktop">

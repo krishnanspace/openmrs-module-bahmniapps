@@ -233,7 +233,9 @@ angular.module('bahmni.appointments')
 
             $scope.responseMap = function (data) {
                 return _.map(data, function (patientInfo) {
-                    patientInfo.label = patientInfo.givenName + (patientInfo.familyName ? " " + patientInfo.familyName : "") + " " + "(" + patientInfo.identifier + ")";
+                    var NID = JSON.parse(patientInfo.extraIdentifiers);
+                    var nickName = patientInfo.nickName || "";
+                    patientInfo.label = patientInfo.givenName + (patientInfo.familyName ? " " + patientInfo.familyName : "") + " " + "(" + nickName + ") "+ NID['NID (SERVIÇO TARV)'] + " (" + patientInfo.identifier + ") ";
                     return patientInfo;
                 });
             };

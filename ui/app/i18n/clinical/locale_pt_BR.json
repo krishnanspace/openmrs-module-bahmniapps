@@ -1,4 +1,7 @@
 {
+    "STATUS_PATIENT_ACTIVE":"Status: Active",
+    "STATUS_PATIENT_DEAD":"Status: Closed Assistance - Dead",
+    "STATUS_PATIENT_TRANSFERRED_OUT":"Status: Closed Assistance - Transferred out",
     "CONSULTATION_TAB_KEY": "<u>C</u>onsultas",
     "CONSULTATION_SHORTCUT_KEY": "c",
     "NO_ACTIVE_PASSIVE_PROGRAMS_MESSAGE": "Nenhum programa ativo/inativo para este paciente.",
@@ -204,5 +207,12 @@
     "CONDITION_LIST_FOLLOW_UP": "Follow up",
     "CONDITION_LIST_ACTIVE_SINCE": "condition from",
     "CONDITION_LIST_NO_CONDITIONS": "No Conditions available",
-    "CONDITION_LIST_NO_RETRO_MODE": "<strong>Conditions cannot</strong> be edited in retrospective mode"
+    "CONDITION_LIST_NO_RETRO_MODE": "<strong>Conditions cannot</strong> be edited in retrospective mode",
+    "DOB_LABEL": "Data de nascimento",
+    "DELETE_LABEL": "Excluir",
+    "EDIT_LABEL": "Editar",
+    "RETROSPECTIVE_POPUP_LOCATION_LABEL": "localização",
+    "RETROSPECTIVE_POPUP_ON_BEHALF_LABEL": "Digite em nome",
+    "RETROSPECTIVE_POPUP_DATA_FOR_LABEL": "Insira dados para",
+    "OKAY_LABEL": "OK"
 }
