@@ -82,7 +82,7 @@ angular.module('bahmni.registration')
                             $http.get(Bahmni.Common.Constants.conceptSearchByFullNameUrl, {
                                 params: {
                                     name: deathConcept,
-                                    v: "custom:(uuid,name,set,setMembers:(uuid,display,name:(uuid,name),retired))"
+                                    v: "bahmni"
                                 },
                                 withCredentials: true
                             }).then(function (results) {
@@ -97,6 +97,7 @@ angular.module('bahmni.registration')
             spinner.forPromise($scope.getDeathConcepts());
             var filterRetireDeathConcepts = function (deathConcepts) {
                 return _.filter(deathConcepts, function (concept) {
+                    concept.display = (_.find(concept.names, {conceptNameType: "SHORT"}) || _.find(concept.names, {conceptNameType: "FULLY_SPECIFIED"})).display;
                     return !concept.retired;
                 });
             };
